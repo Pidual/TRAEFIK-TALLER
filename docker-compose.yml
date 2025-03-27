@@ -1,0 +1,58 @@
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--api.insecure=true" 
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=carlosmapache1@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # Dashboard de Traefik
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./traefik/traefik.yml:/etc/traefik/traefik.yml"
+      - "./traefik/acme.json:/letsencrypt/acme.json"
+    networks:
+      - proxy
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_service
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx.rule=Host(`nginx.localhost`)"
+      - "traefik.http.routers.nginx.entrypoints=websecure"
+      - "traefik.http.routers.nginx.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.nginx-auth.basicauth.users=123:$apr1$np0p5oDk$CuNZns2Txlos1oROR0gsJ0" 
+      - "traefik.http.middlewares.rate-limit.rateLimit.average=5"
+      - "traefik.http.middlewares.rate-limit.rateLimit.burst=10"
+      - "traefik.http.routers.nginx.middlewares=nginx-auth,rate-limit"
+    networks:
+      - proxy
+
+  whoami:
+    image: traefik/whoami
+    container_name: whoami_service
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.api-rate-limit.rateLimit.average=2"
+      - "traefik.http.middlewares.api-rate-limit.rateLimit.burst=4"
+      - "traefik.http.routers.whoami.middlewares=api-rate-limit"
+    networks:
+      - proxy
+
+networks:
+  proxy:

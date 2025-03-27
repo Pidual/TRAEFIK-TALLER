@@ -1,0 +1,29 @@
+api:
+  dashboard: true
+  insecure: true  # Habilitado temporalmente para pruebas
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: carlosmapache1@gmail.com  # Tu correo para notificaciones
+      storage: acme.json
+      httpChallenge:
+        entryPoint: web
+
+http:
+  middlewares:
+    rate-limit-middleware:
+      rateLimit:
+        average: 5
+        burst: 10
