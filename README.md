@@ -2,6 +2,8 @@ Trabajado por CARLOS HERNANDO LOZANO PEREZ y DAVIDSANTIAGO CUBILLOS MÉNDEZ
 
 # Proxy inverso Traefik con Nginx y Whoami
 Como podemos ver esta es nuetra estructura de proyecto 
+...
+
 /traefik-taller
 │── docker-compose.yml
 │── nginx/
@@ -9,7 +11,8 @@ Como podemos ver esta es nuetra estructura de proyecto
 └── traefik/
     ├── acme.json
     └── traefik.yml
-
+    
+...
 
 ## Correr el proycto 
 ### 1. VAmos a clondar el Nuestro repocitorio, con el siguiente comando 
